@@ -24,69 +24,86 @@ define(["orion/xhr","orion/Deferred"],function(xhr,Deferred){
                * @callback
                */
               run: function(text) {
-                  doJSON();
+                  text.split("").doJSON().join("");
+                  text.split("").parseResults().join("");
               }
-        }
-        var serviceProperties = {
+    	}
+    	var serviceProperties = {
               name: "ReplaceFile Text",
               key: ["e", true, true] // Ctrl+Shift+e
-        };
+    	};
 	    provider.registerService("orion.edit.command", serviceImpl, serviceProperties);
-        provider.connect();
-	
-	
-	var xmlHttp;
-	function createXMLHttpRequest() {
-		try {xmlHttp = new XMLHttpRequest();}
-		catch(e) {
-			var IEXHRVers =["Msxml3.XMLHTTP","Msxml2.XMLHTTP","Microsoft.XMLHTTP"];
-			for (var i=0,len=IEXHRVers.length;i< len;i++) {
-				xmlHttp = new ActiveXObject(IEXHRVers[i]);
-				if(xmlHttp !== undefined) {continue;}
-				else{break;}	
+    	provider.connect();
+    	
+		var xmlHttp;
+		function createXMLHttpRequest() {
+			try {xmlHttp = new XMLHttpRequest();}
+			catch(e) {
+				var IEXHRVers =["Msxml3.XMLHTTP","Msxml2.XMLHTTP","Microsoft.XMLHTTP"];
+				for (var i=0,len=IEXHRVers.length;i< len;i++) {
+					xmlHttp = new ActiveXObject(IEXHRVers[i]);
+					if(xmlHttp !== undefined) {continue;}
+					else{break;}	
+				}
 			}
 		}
-	}
 	
-	var url="org.eclipse.orion.internal.server.servlets.file.FileHandlerV1.handleRequest";
+		var url="org.eclipse.orion.internal.server.servlets.file.FileHandlerV1.handleRequest";
 	
-	function doJSON() {      
-		var text= {"parts":"fileHistory","file":"fileURL"}; 
-		text["fileURL"] = new URL(window.location.href);//tested
-  		//var url="org.eclipse.orion.internal.server.servlets.file.FileHandlerV1.handleRequest";  
-    createXMLHttpRequest();   
-		xmlHttp("GET", url, { 
-			headers : { 
-				"Orion-Version" : "1",
-				"Content-Type" : "text/html"
-			},
-			timeout : 15000,
-			handleAs : "json" //$NON-NLS-0$
-		}).then(function(result) {
-				p_here.innerHTML =  p_here.innerHTML + "<br/>" + result;
-				var response =  result.response ? JSON.parse(result.response) : null;
-				p_here.innerHTML = p_here.innerHTML + "<br/>" 
-						+ response["config/userInfo"].GitMail;
-		});
-
-    	xmlHttp.onreadystatechange = handleStateChange;       
-    	xmlHttp.send(text);  
-	} 
+		function doJSON() {      
+			var text= {
+				"parts":"fileHistory",
+				"file":"fileURL"
+			}; 
+			text["fileURL"] = new URL(window.location.href);//tested
+    		createXMLHttpRequest();   
+				xmlHttp("GET", url, { 
+					headers : { 
+						"Orion-Version" : "1",
+						"Content-Type" : "text/html"
+					},
+					timeout : 15000,
+					handleAs : "json" //$NON-NLS-0$
+				}).then(function(result) {
+			  		parseResults(result);
+			}); 
+		  	xmlHttp.onreadystatechange = handleStateChange;       
+    		xmlHttp.send(text);  
+		} 
 	
-	function handleStateChange() {  
-    	if(xmlHttp.readyState == 4) {  
-        	if(xmlHttp.status == 200) {  
-            	parseResults();  
-        	}  
-    	}  
-  	} 
+		function handleStateChange() {  
+    		if(xmlHttp.readyState == 4) {  
+        		if(xmlHttp.status == 200) {  
+            		parseResults();  
+        		}  
+    		}  
+ 		} 
     
 	
-	function parseResults() {
-  		//display and analyze the result
-		var fileHistory = {"parts": [ "xxxx","sssss" ] };//an example for test
-		var returnResult = eval(fileHistory);
-	}
+		function parseResults(fileHistory) { 
+  			//display and analyze the result
+			var returnResult = eval(fileHistory);
+			alert(returnResult.parts);
+			var fso= new ActiveXObject("Scripting.FileSystemObject");  
+    
+    		var f = fso.GetFolder(returnResult.parts);
+    		var fc = new Enumerator(f.files);
+   	 		var s = "";
+    		for (; !fc.atEnd(); fc.moveNext())
+        	{
+				s += "<a href="+fc.item()+">";
+            	s += fc.item();
+				s += "</a>";
+            	s += "<br/>";
+        	}
+        	fk = new Enumerator(f.SubFolders);
+        	for (; !fk.atEnd(); fk.moveNext())
+     		{
+        		s += fk.item();
+        		s += "<br/>";
+        	}
+        	textarea.innerHTML = s;
+    	}	
 });
 
 	
