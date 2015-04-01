@@ -12,60 +12,24 @@
 /*global URL*/
 /*globals ActiveXObject alert createXMLHttpRequest p_here orion*/
 
-define(["orion/xhr","orion/Deferred"],function(xhr,Deferred,root,factory){
-		if (typeof define === "function" && define.amd) { //$NON-NLS-0$
-        define(["orion/Deferred"], factory);
-    } else if (typeof exports === "object") { //$NON-NLS-0$
-        module.exports = factory(require("orion/Deferred"));
-    } else {
-        root.orion = root.orion || {};
-        root.orion.PluginProvider = factory(root.orion.Deferred);
-    }
-	}(this, function(Deferred,xhr) {
-   		function ObjectReference(objectId, methods) {
-       		this.__objectId = objectId;
-        	this.__methods = methods;
+define(["orion/xhr","orion/Deferred","orion/plugin"],function(xhr,Deferred,PluginProvider){
+	var headers = {
+			name: "Replace Plugin",
+			version: "1.0", //$NON-NLS-0$
+			description: "Replace with local history support for the editor."
+		};
+		var provider = new PluginProvider(headers);
+		var serviceImpl = {
+              run: function(text) {
+                  text.split("").getJSon().join("");
+                  text.split("").parseResults().join("");
+              }
     	}
-	  
-	  function PluginProvider(headers) {
-        var _headers = headers;
-        var _connected = false;
-
-        var _currentMessageId = 0;
-        var _currentObjectId = 0;
-        var _currentServiceId = 0;
-
-        var _requestReferences = {};
-        var _responseReferences = {};
-        var _objectReferences = {};
-        var _serviceReferences = {};
-        
-        var _target = null;
-        if (typeof(window) === "undefined") { //$NON-NLS-0$
-            _target = self;
-        } else if (window !== window.parent) {
-            _target = window.parent;
-        } else if (window.opener !== null) {
-            _target = window.opener;
-        }   
-            
-        function _getPluginData() {
-            var services = [];
-            // we filter out the service implementation from the data
-            Object.keys(_serviceReferences).forEach(function(serviceId) {
-                var serviceReference = _serviceReferences[serviceId];
-                services.push({
-                    serviceId: serviceId,
-                    names: serviceReference.names,
-                    methods: serviceReference.methods,
-                    properties: serviceReference.properties
-                });
-            });
-            return {
-                headers: _headers || {},
-                services: services
-            };
-        }
+    	var serviceProperties = {
+              name: "ReplaceFile Text",
+              key: ["e", true, true] // Ctrl+Shift+e
+    	};
+	    provider.registerService("orion.edit.command", serviceImpl, serviceProperties);
         
 	  	function deleteTempOperation(operationLocation) {
 				xhr("DELETE", operationLocation, {
@@ -89,7 +53,7 @@ define(["orion/xhr","orion/Deferred"],function(xhr,Deferred,root,factory){
 			}).then(function(result) {
 				var operationJson = result.response ? JSON.parse(result.response) : null;
 				deferred.progress(operationJson);
-				parseResults(result);
+				// parseResults(result);
 			
 			if (operationJson.type === "error" || operationJson.type === "abort") {
 				deferred.reject(onReject ? onReject(operationJson) : operationJson.Result);
@@ -123,71 +87,9 @@ define(["orion/xhr","orion/Deferred"],function(xhr,Deferred,root,factory){
 		});
 	}
     	
-	
-		function parseResults(fileHistory) { 
-  			//display and analyze the result
-			var returnResult = eval(fileHistory);
-			alert(returnResult.parts);
-			var fso= new ActiveXObject("Scripting.FileSystemObject");  
-    
-    		var f = fso.GetFolder(returnResult.parts);
-    		var fc = new Enumerator(f.files);
-   	 		var s = "";
-    		for (; !fc.atEnd(); fc.moveNext())
-        	{
-				s += "<a href="+fc.item()+">";
-            	s += fc.item();
-				s += "</a>";
-            	s += "<br/>";
-        	}
-        	fk = new Enumerator(f.SubFolders);
-        	for (; !fk.atEnd(); fk.moveNext())
-     		{
-        		s += fk.item();
-        		s += "<br/>";
-        	}
-        	textarea.innerHTML = s;
-    	}
-    	
-       
-    	this.updateHeaders = function(headers) {
-            if (_connected) {
-                throw new Error("Cannot update headers. Plugin Provider is connected");
-            }
-            _headers = headers;
-        };
-
-        this.registerService = function(names, implementation, properties) {
-            if (_connected) {
-                throw new Error("Cannot register service. Plugin Provider is connected");
-            }
-
-            if (typeof names === "string") {
-                names = [names];
-            } else if (!Array.isArray(names)) {
-                names = [];
-            }
-
-            var method = null;
-            var methods = [];
-            for (method in implementation) {
-                if (typeof implementation[method] === 'function') { //$NON-NLS-0$
-                    methods.push(method);
-                }
-            }
-            _serviceReferences[_currentServiceId++] = {
-                names: names,
-                methods: methods,
-                implementation: implementation,
-                properties: properties || {},
-                listeners: {}
-            };
-        };
         this.registerServiceProvider = this.registerService;
-    }
-    
-    return PluginProvider;
-}));
+        provider.connect();
+    });
 
 	
  

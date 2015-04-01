@@ -15,28 +15,6 @@
 		  }
 		});	
 		require(["plugins/ReplacePlugin"]);
-		
-		var headers = {
-			name: "Replace Plugin",
-			version: "1.0", //$NON-NLS-0$
-			description: "Replace with local history support for the editor."
-		};
-		var provider = new orion.PluginProvider(headers);
-		var serviceImpl = {
-              /**
-               * @callback
-               */
-              run: function(text) {
-                  text.split("").getJSon().join("");
-                  text.split("").parseResults().join("");
-              }
-    	}
-    	var serviceProperties = {
-              name: "ReplaceFile Text",
-              key: ["e", true, true] // Ctrl+Shift+e
-    	};
-	    provider.registerService("orion.edit.command", serviceImpl, serviceProperties);
-    	provider.connect();
 </script>
 </head>
 <body bgcolor="#FFFFFF">
