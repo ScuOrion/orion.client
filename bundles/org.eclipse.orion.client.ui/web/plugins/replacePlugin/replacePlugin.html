@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Replace Plugin</title>
+  <script src="./require.js"></script>
+  <script>
+		/*eslint-env browser, amd*/
+		require({
+		  baseUrl: '..',
+		  paths: {
+			  text: 'requirejs/text',
+			  i18n: 'requirejs/i18n',
+			  domReady: 'requirejs/domReady'
+		  }
+		});	
+		require(["orion/ReplacePlugin"]);
+</script>
+</head>
+<body bgcolor="#FFFFFF">
+<table >
+<tr>
+<td id = "textarea">
+</td>
+</tr>
+</table>
+</body>
+</html>
